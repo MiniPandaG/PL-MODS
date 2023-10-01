@@ -5,8 +5,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.example</groupId>
-    <artifactId>PL-MODS2</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <artifactId>PL-MODS</artifactId>
+    <version>1.1-SNAPSHOT</version>
 
     <properties>
         <!-- Ajustar las versiones de Java según tus necesidades -->

@@ -6,6 +6,7 @@ import java.net.*;
 import java.nio.file.*;
 import java.util.zip.*;
 
+
 public class Main extends JFrame {
 
     private Path modDirectory;
@@ -13,6 +14,7 @@ public class Main extends JFrame {
     private JButton installModpackButton;
     private JProgressBar progressBar;
     private Font customFont2;
+
 
     public Main() {
         super("PandaLand Software | ModPack");
@@ -77,7 +79,7 @@ public class Main extends JFrame {
         buttonPanel.add(changeModDirectoryButton);
         buttonPanel.add(supportButton);
 
-        JLabel footerLabel = new JLabel("<html>Developer by MiniPandaG | Power by MiniPanda-Services");
+        JLabel footerLabel = new JLabel("<html>Developer by MiniPandaG | v.1.0 | Power by MiniPanda-Services");
         footerLabel.setForeground(Color.WHITE); // Cambia el color del texto según tu preferencia
         footerLabel.setHorizontalAlignment(JLabel.CENTER); // Centra el texto horizontalmente
 
@@ -120,6 +122,23 @@ public class Main extends JFrame {
             Desktop.getDesktop().browse(new URI(url));
         } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void checkDirectories() {
+        // Verificar si la carpeta "mods" no se encuentra
+        if (!Files.exists(modDirectory)) {
+            JOptionPane.showMessageDialog(this, "La carpeta 'mods' no se encuentra.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
+        }
+
+        // Verificar si la carpeta ".minecraft" no se encuentra
+        Path minecraftDirectory = Paths.get(System.getProperty("user.home"), "AppData", "Roaming", ".minecraft");
+        if (!Files.exists(minecraftDirectory)) {
+            JOptionPane.showMessageDialog(this, "La carpeta '.minecraft' no se encuentra.",
+                    "Error", JOptionPane.ERROR_MESSAGE);
+            System.exit(1);
         }
     }
 
@@ -210,28 +229,45 @@ public class Main extends JFrame {
                 }
                 JOptionPane.showMessageDialog(this, "Por favor, guarda los archivos antes de continuar de lo contrario se borrará todo", "Guardar archivos", JOptionPane.INFORMATION_MESSAGE);
             } else {
-                // Eliminar los archivos
+                // Mover los archivos a una carpeta de respaldo
+                String backupFolderPath = modDirectory.toString() + File.separator + "respaldo_archivos";
+                File backupFolder = new File(backupFolderPath);
+                if (!backupFolder.exists()) {
+                    backupFolder.mkdir();
+                }
+
                 for (File file : files) {
                     if (file.isFile()) {
-                        file.delete();
+                        File newLocation = new File(backupFolderPath + File.separator + file.getName());
+                        if (file.renameTo(newLocation)) {
+                            System.out.println("Archivo movido exitosamente: " + file.getName());
+                        } else {
+                            System.err.println("Error al mover el archivo: " + file.getName());
+                        }
                     }
                 }
             }
         }
     }
 
+
     private void installModpack() {
         // Antes de instalar, elimina los archivos en el directorio actual
         deleteFilesInModDirectory();
 
-        String modpackUrl = "https://pandaland.vip/modpack.zip";
+        String modpackUrl = "https://modpack.pandaland.vip/pl-modpack.zip";
         String tempFilePath = "temp.zip";
 
         Thread worker = new Thread(() -> {
             try {
                 // Descargar el archivo del modpack
                 HttpURLConnection connection = (HttpURLConnection) new URL(modpackUrl).openConnection();
-                int fileSize = connection.getContentLength(); // Obtener el tamaño del archivo
+                int fileSize = connection.getContentLength();
+                if (fileSize <= 0) {
+                    JOptionPane.showMessageDialog(Main.this, "No se pudo conectar al servidor o el archivo de actualización no está disponible. Por favor, intentelo mas tarde.",
+                            "Error de conexión", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
                 connection.disconnect();
 
                 installModpackButton.setEnabled(false);
@@ -257,7 +293,7 @@ public class Main extends JFrame {
                         "Instalación exitosa", JOptionPane.INFORMATION_MESSAGE);
             } catch (IOException e) {
                 e.printStackTrace();
-                JOptionPane.showMessageDialog(Main.this, "Error al instalar",
+                JOptionPane.showMessageDialog(Main.this, "Error al instalar: " + e.getMessage(),
                         "Error de instalación", JOptionPane.ERROR_MESSAGE);
             } finally {
                 installModpackButton.setEnabled(true);
@@ -295,7 +331,7 @@ public class Main extends JFrame {
                     extractFile(zipInputStream, filePath);
                 } else {
                     File dir = new File(filePath);
-                    dir.mkdir();
+                    dir.mkdirs(); // Cambiar a mkdirs() para crear carpetas anidadas si es necesario
                 }
                 zipInputStream.closeEntry();
                 entry = zipInputStream.getNextEntry();
