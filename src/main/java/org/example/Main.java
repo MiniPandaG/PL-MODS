@@ -255,7 +255,7 @@ public class Main extends JFrame {
         // Antes de instalar, elimina los archivos en el directorio actual
         deleteFilesInModDirectory();
 
-        String modpackUrl = "https://modpack.pandaland.vip/pl-modpack.zip";
+        String modpackUrl = "INGRESAR_URL_ARCHIVO_ZIP";
         String tempFilePath = "temp.zip";
 
         Thread worker = new Thread(() -> {
